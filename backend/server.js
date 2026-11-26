@@ -22,7 +22,7 @@ const app = express();
 connectDB();
 
 app.use(cors({
-  origin: "https://nft-bazar-vite-project-1-frontend.onrender.com",
+  origin: "https://nft-bazar-vite-project-1-forntend.onrender.com",
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
   credentials: true
 }));

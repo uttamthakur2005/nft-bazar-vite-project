@@ -18,40 +18,41 @@ const nftRoutes = require("./routes/nft.routes");
 const collectionRoutes = require("./routes/collection.routes");
 
 const app = express();
+app.set("trust proxy", 1);
 
 connectDB();
 
+const defaultRenderOrigins = [
+  "https://nft-bazar-vite-project-1-forntend.onrender.com",
+  "https://nft-bazar-vite-project-1-frontend.onrender.com",
+];
 
-app.use(express.json());
+const envOrigins = (process.env.CLIENT_ORIGIN || "")
+  .split(",")
+  .map((o) => o.trim().replace(/\/+$/, ""))
+  .filter(Boolean);
 
-app.use(cors({
-  origin: "https://nft-bazar-vite-project-1-frontend.onrender.com",
+const allowedOrigins = Array.from(new Set([...envOrigins, ...defaultRenderOrigins]));
+
+const corsOptions = {
+  origin: (origin, callback) => {
+    const normalizedOrigin = origin ? origin.replace(/\/+$/, "") : origin;
+    if (!normalizedOrigin || envOrigins.length === 0 || allowedOrigins.includes(normalizedOrigin)) {
+      return callback(null, true);
+    }
+    return callback(new Error("Not allowed by CORS"));
+  },
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-  credentials: true
-}));
+  credentials: true,
+  optionsSuccessStatus: 204,
+};
 
-app.use(express.json());
-app.use(helmet());
+app.use(cors(corsOptions));
+app.options("*", cors(corsOptions));
+app.use(helmet({ crossOriginResourcePolicy: false }));
 app.use(express.json({ limit: "10kb" }));
 app.use(mongoSanitize());
 app.use(morgan(process.env.NODE_ENV === "production" ? "combined" : "dev"));
-
-const allowedOrigins = (process.env.CLIENT_ORIGIN || "")
-  .split(",")
-  .map((o) => o.trim())
-  .filter(Boolean);
-
-app.use(
-  cors({
-    origin: (origin, callback) => {
-      if (!origin || allowedOrigins.length === 0 || allowedOrigins.includes(origin)) {
-        return callback(null, true);
-      }
-      return callback(new Error("Not allowed by CORS"));
-    },
-    credentials: true,
-  })
-);
 
 app.use(
   "/api",

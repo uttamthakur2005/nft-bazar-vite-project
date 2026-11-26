@@ -1,4 +1,10 @@
-const API_BASE = import.meta.env.VITE_API_BASE || "https://nft-bazar-vite-project.onrender.com";
+const fallbackBase =
+  typeof window !== "undefined" &&
+  (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")
+    ? "http://localhost:5000/api"
+    : "https://nft-bazar-vite-project.onrender.com/api";
+const rawBase = (import.meta.env.VITE_API_BASE || fallbackBase).replace(/\/+$/, "");
+const API_BASE = rawBase.endsWith("/api") ? rawBase : `${rawBase}/api`;
 
 let authFailureHandler = null;
 
